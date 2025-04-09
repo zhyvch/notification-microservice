@@ -14,6 +14,16 @@ class Settings(BaseSettings):
     MONGODB_PASSWORD: str
     MONGODB_DATABASE: str
 
+    RABBITMQ_HOST: str
+    RABBITMQ_USER: str
+    RABBITMQ_PASSWORD: str
+    RABBITMQ_VHOST: str
+    RABBITMQ_PORT: int
+
+    NANOSERVICES_EXCH_NAME: str
+    NOTIFICATION_SERVICE_QUEUE_NAME: str = 'notification_service_queue'
+    NOTIFICATION_SERVICE_CONSUMING_RKS: list[str] = ['user.credentials.created', 'user.credentials.updated']
+
     @property
     def MONGODB_URL(self):
         return f'mongodb://{self.MONGODB_USER}:{self.MONGODB_PASSWORD}@{self.MONGODB_HOST}:{self.MONGODB_PORT}/{self.MONGODB_DATABASE}?authSource=admin'

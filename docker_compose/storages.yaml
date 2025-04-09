@@ -17,7 +17,3 @@ services:
 
 volumes:
   notification_service_mongo_data:
-
-networks:
-  backend:
-    driver: bridge
