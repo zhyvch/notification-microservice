@@ -12,8 +12,8 @@ services:
       - MONGO_INITDB_ROOT_USERNAME=${MONGODB_USER}
       - MONGO_INITDB_ROOT_PASSWORD=${MONGODB_PASSWORD}
       - MONGO_INITDB_DATABASE=${MONGODB_DATABASE}
-    networks:
-      - backend
+#    networks:
+#      - backend
 
 volumes:
   notification_service_mongo_data:

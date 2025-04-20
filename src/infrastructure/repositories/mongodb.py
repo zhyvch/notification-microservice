@@ -1,15 +1,21 @@
 from dataclasses import dataclass
+from uuid import UUID
 
-from domain.entities.users import ...
-from infrastructure.models import ...
-from infrastructure.repositories.base import BaseRepository
+from domain.entities.notifications import EmailNotificationEntity, SMSNotificationEntity
+from infrastructure.models.notifications import NotificationModel
+from infrastructure.repositories.base import BaseNotificationRepository
 
 
 @dataclass
-class BeanieRepository(BaseRepository):
-    model: type[...]
+class BeanieNotificationRepository(BaseNotificationRepository):
+    async def get(self, notification_id: UUID) -> EmailNotificationEntity | SMSNotificationEntity | None:
+        notification = await NotificationModel.find_one({'id': notification_id})
+        print(notification)
 
-    async def get(self, email: str, hashed_password: str) -> UserCredentialsEntity | None:
-        user_creds = await self.model.find_one({'email': email})
-        print(user_creds)
+    async def add(self, notification: EmailNotificationEntity | SMSNotificationEntity) -> None:
+        ...
+
+    async def remove(self, notification_id: UUID) -> None:
+        ...
+
 

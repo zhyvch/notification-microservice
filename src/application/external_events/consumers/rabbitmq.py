@@ -35,10 +35,10 @@ class RabbitMQConsumer(BaseConsumer):
             durable=True,
         )
         self.queue = await self.channel.declare_queue(
-            settings.USER_SERVICE_QUEUE_NAME,
+            settings.NOTIFICATION_SERVICE_QUEUE_NAME,
             durable=True,
         )
-        for key in settings.USER_SERVICE_CONSUMING_RKS:
+        for key in settings.NOTIFICATION_SERVICE_CONSUMING_RKS:
             await self.queue.bind(self.exchange, routing_key=key)
             print(f'Queue "{self.queue.name}" bound to routing key "{key}".')
 
@@ -61,4 +61,4 @@ class RabbitMQConsumer(BaseConsumer):
         try:
             await self.external_events_map[message.routing_key](orjson.loads(message.body))
         except Exception as e:
-            print('Error processing message:', e)
+            print('Error processing message:', e, message.body)

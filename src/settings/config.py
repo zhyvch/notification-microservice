@@ -22,7 +22,13 @@ class Settings(BaseSettings):
 
     NANOSERVICES_EXCH_NAME: str
     NOTIFICATION_SERVICE_QUEUE_NAME: str = 'notification_service_queue'
-    NOTIFICATION_SERVICE_CONSUMING_RKS: list[str] = ['user.credentials.created', 'user.credentials.updated']
+    NOTIFICATION_SERVICE_CONSUMING_RKS: list[str] = ['user.registration.completed']
+
+    SMTP_HOST: str
+    SMTP_PORT: int
+    SMTP_USER: str
+    SMTP_PASSWORD: str
+    FROM_EMAIL: str
 
     @property
     def MONGODB_URL(self):

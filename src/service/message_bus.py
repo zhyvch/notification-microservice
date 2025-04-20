@@ -5,7 +5,7 @@ from typing import Union
 from domain.commands.base import BaseCommand
 from domain.events.base import BaseEvent
 
-from infrastructure.repositories.base import BaseRepository
+from infrastructure.repositories.base import BaseNotificationRepository
 from service.handlers.command.base import BaseCommandHandler
 from service.handlers.event.base import BaseEventHandler
 
@@ -16,7 +16,7 @@ Message = Union[BaseEvent, BaseCommand]
 
 @dataclass
 class MessageBus:
-    repo: BaseRepository
+    repo: BaseNotificationRepository
     commands_map: dict[type[BaseCommand], BaseCommandHandler] = field(
         default_factory=dict,
         kw_only=True,
@@ -62,5 +62,6 @@ class MessageBus:
                 continue
 
     def collect_new_event(self):
-        while ....events:
-            yield ....events.pop(0)
+        for notification in self.repo.loaded_notifications:
+            while notification.events:
+                yield notification.events.pop(0)
