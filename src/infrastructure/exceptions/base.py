@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 
 @dataclass(frozen=True, eq=False)
-class DomainException(Exception):
+class InfrastructureException(Exception):
     @property
     def message(self) -> str:
-        return 'Domain error occurred'
+        return 'Infrastructure error occurred'

@@ -11,9 +11,18 @@ class NotificationType(Enum):
 class NotificationModel(Document):
     id: UUID
     notification_type: NotificationType
-    email: str
-    phone_number: str
+    sender: str | None
+    receivers: list[str] | None
     message: str
 
     class Settings:
         name = 'notifications'
+
+
+class NotificationTemplateModel(Document):
+    name: str
+    text_template: str
+    html_template: str | None
+
+    class Settings:
+        name = 'notification_templates'

@@ -1,21 +1,67 @@
-from dataclasses import dataclass
-from uuid import UUID
+import logging
 
 from domain.entities.notifications import EmailNotificationEntity, SMSNotificationEntity
-from infrastructure.models.notifications import NotificationModel
-from infrastructure.repositories.base import BaseNotificationRepository
+from infrastructure.converters.notifications import convert_notification_entity_to_model
+from infrastructure.exceptions.notifications import NotificationTemplateNotFoundException
+from infrastructure.models.notifications import NotificationTemplateModel
+from infrastructure.repositories.base import BaseNotificationRepository, BaseNotificationTemplateRepository
 
 
-@dataclass
+logger = logging.getLogger(__name__)
+
+
 class BeanieNotificationRepository(BaseNotificationRepository):
-    async def get(self, notification_id: UUID) -> EmailNotificationEntity | SMSNotificationEntity | None:
-        notification = await NotificationModel.find_one({'id': notification_id})
-        print(notification)
+    async def add(
+        self,
+        notification: EmailNotificationEntity | SMSNotificationEntity,
+    ) -> None:
+        logger.debug('Adding notification with ID \'%s\'', notification.id)
+        try:
+            notification = convert_notification_entity_to_model(notification)
+            await notification.insert()
+            logger.debug('Notification with ID \'%s\' added to DB', notification.id)
+        except Exception as e:
+            logger.exception('Error adding notification with ID \'%s\': %s', notification.id, str(e))
+            raise
 
-    async def add(self, notification: EmailNotificationEntity | SMSNotificationEntity) -> None:
-        ...
 
-    async def remove(self, notification_id: UUID) -> None:
-        ...
+class BeanieNotificationTemplateRepository(BaseNotificationTemplateRepository):
+    async def add(
+        self,
+        name: str,
+        text_template: str,
+        html_template: str | None = None,
+    ) -> None:
+        logger.debug('Adding notification template with name \'%s\'', name)
+        try:
+            NotificationTemplateModel(
+                name=name,
+                text_template=text_template,
+                html_template=html_template,
+            ).insert()
+            logger.debug('Notification template with name \'%s\' added to DB', name)
+        except Exception as e:
+            logger.exception('Error adding notification template with name \'%s\': %s', name, str(e))
+            raise
 
 
+    async def get(
+        self,
+        name: str,
+    ) -> dict[str, str]:
+        logger.debug('Getting notification template with name \'%s\'', name)
+        try:
+            template = await NotificationTemplateModel.find_one(NotificationTemplateModel.name == name)
+            
+            if not template:
+                raise NotificationTemplateNotFoundException(name=name)
+
+            logger.debug('Notification template with name \'%s\' found', name)
+            return {
+                'name': template.name,
+                'text_template': template.text_template,
+                'html_template': template.html_template,
+            }
+        except Exception as e:
+            logger.exception('Error retrieving notification template with name \'%s\': %s', name, str(e))
+            raise

@@ -4,7 +4,6 @@ from domain.entities.base import BaseEntity
 from domain.value_objects.notifications import EmailVO, PhoneNumberVO
 
 
-
 @dataclass(eq=False)
 class EmailNotificationEntity(BaseEntity):
     sender: EmailVO
