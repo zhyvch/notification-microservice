@@ -20,11 +20,19 @@ class BaseNotificationRepository(ABC):
     ) -> None:
         ...
 
+    @abstractmethod
+    async def get(
+        self,
+        notification_id: UUID,
+    ) -> EmailNotificationEntity | SMSNotificationEntity:
+        ...
+
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
         logger.debug('Initializing repository subclass: %s', cls.__name__)
 
         add = cls.add
+        get = cls.get
 
         async def _add(
             self,
@@ -35,7 +43,18 @@ class BaseNotificationRepository(ABC):
             self.loaded_notifications.add(notification)
             logger.debug('Notification \'%s\' added to loaded_notifications set', notification.id)
 
+        async def _get(
+            self,
+            notification_id: UUID,
+        ) -> EmailNotificationEntity | SMSNotificationEntity:
+            logger.debug('Fetching notification with ID \'%s\'', notification_id)
+            notification = await get(self, notification_id)
+            self.loaded_notifications.add(notification)
+            logger.debug('Notification \'%s\' added to loaded_notifications set', notification.id)
+            return notification
+
         cls.add = _add
+        cls.get = _get
 
 
 class BaseNotificationTemplateRepository(ABC):

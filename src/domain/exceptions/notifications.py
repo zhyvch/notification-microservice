@@ -4,6 +4,13 @@ from domain.exceptions.base import DomainException
 
 
 @dataclass(frozen=True, eq=False)
+class EmailTypeException(DomainException):
+    @property
+    def message(self) -> str:
+        return 'Email should be a string type'
+
+
+@dataclass(frozen=True, eq=False)
 class EmailIsEmptyException(DomainException):
     @property
     def message(self) -> str:
@@ -35,6 +42,13 @@ class EmailNotContainingAtSymbolException(DomainException):
     @property
     def message(self) -> str:
         return f'Email <{self.email}> must contain an "@" symbol'
+
+
+@dataclass(frozen=True, eq=False)
+class PhoneNumberTypeException(DomainException):
+    @property
+    def message(self) -> str:
+        return 'Phone number should be a string type'
 
 
 @dataclass(frozen=True, eq=False)

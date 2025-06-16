@@ -1,17 +1,25 @@
 from dataclasses import dataclass
 
 from domain.exceptions.notifications import (
+    EmailTypeException,
     EmailIsEmptyException,
     EmailTooShortException,
     EmailTooLongException,
     EmailNotContainingAtSymbolException,
+    PhoneNumberTypeException,
     PhoneNumberIsEmptyException,
     PhoneNumberTooShortException,
     PhoneNumberTooLongException,
     PhoneNumberNotStartingWithPlusSymbolException,
-    PhoneNumberContainsNonDigitsException, NameTypeException, NameIsEmptyException, NameTooLongException,
+    PhoneNumberContainsNonDigitsException,
+    NameTypeException,
+    NameIsEmptyException,
+    NameTooLongException,
 )
 from domain.value_objects.base import BaseVO
+
+
+# TODO: Move validation to a separate class
 
 
 @dataclass(frozen=True)
@@ -19,10 +27,13 @@ class EmailVO(BaseVO):
     value: str
 
     def validate(self) -> bool:
+        if not isinstance(self.value, str):
+            raise EmailTypeException()
+
         if not self.value:
             raise EmailIsEmptyException()
 
-        if len(self.value) < 5:
+        if len(self.value) < 6:
             raise EmailTooShortException(self.value)
 
         if len(self.value) > 255:
@@ -42,6 +53,9 @@ class PhoneNumberVO(BaseVO):
     value: str
 
     def validate(self) -> bool:
+        if not isinstance(self.value, str):
+            raise PhoneNumberTypeException()
+
         if not self.value:
             raise PhoneNumberIsEmptyException()
 
@@ -69,10 +83,10 @@ class NameVO(BaseVO):
 
     def validate(self) -> bool:
         if not isinstance(self.value, str):
-            raise NameTypeException
+            raise NameTypeException()
 
         if not self.value:
-            raise NameIsEmptyException
+            raise NameIsEmptyException()
 
         if len(self.value) > 255:
             raise NameTooLongException(self.value)

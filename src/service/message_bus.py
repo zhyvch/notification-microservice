@@ -6,8 +6,10 @@ from domain.commands.base import BaseCommand
 from domain.events.base import BaseEvent
 
 from infrastructure.repositories.base import BaseNotificationRepository
+from service.exceptions.notifications import WrongMessageBusMessageType, HandlerNotFoundException
 from service.handlers.command.base import BaseCommandHandler
 from service.handlers.event.base import BaseEventHandler
+
 
 logger = logging.getLogger(__name__)
 
@@ -31,35 +33,75 @@ class MessageBus:
     )
 
     async def handle(self, message: Message):
+        logger.info('Processing message: %s', message.__class__.__name__)
         self.queue.append(message)
-        while self.queue:
-            message = self.queue.pop(0)
-            if isinstance(message, BaseCommand):
-                await self._handle_command(message)
-            elif isinstance(message, BaseEvent):
-                await self._handle_event(message)
-            else:
-                raise Exception(f'{message} was not an Event or Command')
 
-    async def _handle_command(self, command: BaseCommand):
-        logger.debug('Handling command %s', command)
         try:
-            handler = self.commands_map[command.__class__]
-            await handler(command)
-            self.queue.extend(self.collect_new_event())
-        except Exception:
-            logger.exception('Exception handling command %s', command)
+            while self.queue:
+                message = self.queue.pop(0)
+                if isinstance(message, BaseCommand):
+                    await self._handle_command(message)
+                elif isinstance(message, BaseEvent):
+                    await self._handle_event(message)
+                else:
+                    logger.error('Unrecognized message type: %r', message)
+                    raise WrongMessageBusMessageType(message.__class__.__name__)
+        except Exception as e:
+            logger.exception('Failed to process message queue')
             raise
 
+        logger.info('Message queue processing completed')
+
+    async def _handle_command(self, command: BaseCommand):
+        logger.info('Handling command: %s', command.__class__.__name__)
+        try:
+            handler = self.commands_map.get(command.__class__)
+            if not handler:
+                logger.error('No handler found for command: %s', command.__class__.__name__)
+                raise HandlerNotFoundException(command.__class__.__name__)
+
+            logger.debug(
+                'Using handler %s for command %s',
+                handler.__class__.__name__,
+                command.__class__.__name__
+            )
+            await handler(command)
+            self.queue.extend(self.collect_new_event())
+        except HandlerNotFoundException:
+            raise
+        except Exception as e:
+            logger.exception(
+                'Failed to handle command: %s',
+                command.__class__.__name__,
+                exc_info=e,
+            )
+            raise
+        logger.info('Command handled successfully: %s', command.__class__.__name__)
+
     async def _handle_event(self, event: BaseEvent):
-        for handler in self.events_map[event.__class__]:
+        logger.info('Handling event: %s', event.__class__.__name__)
+        handlers = self.events_map.get(event.__class__)
+        if not handlers:
+            logger.error('No handlers registered for event: %s', event.__class__.__name__)
+            return
+
+        for handler in handlers:
             try:
-                logger.debug('Handling event %s with handler %s', event, handler)
+                logger.debug(
+                    'Using handler %s for event %s',
+                    handler.__class__.__name__,
+                    event.__class__.__name__
+                )
                 await handler(event)
                 self.queue.extend(self.collect_new_event())
-            except Exception:
-                logger.exception('Exception handling event %s', event)
-                continue
+            except Exception as e:
+                logger.exception(
+                    'Handler %s failed for event %s',
+                    handler.__class__.__name__,
+                    event.__class__.__name__,
+                    exc_info=e,
+                )
+        logger.info('Event handling completed: %s', event.__class__.__name__)
 
     def collect_new_event(self):
         for notification in self.repo.loaded_notifications:

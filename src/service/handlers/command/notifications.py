@@ -29,7 +29,11 @@ class SendUserRegistrationCompletedMessageCommandHandler(BaseCommandHandler):
     sms_sender: BaseSMSSender
 
     async def __call__(self, command: SendUserRegistrationCompletedMessageCommand):
-        action_name = 'registration_success' if command.credentials_status == UserCredentialsStatus.SUCCESS else 'registration_failed'
+        action_name = (
+            'registration_successful' if command.credentials_status == UserCredentialsStatus.SUCCESS
+            else 'registration_failed' if command.credentials_status == UserCredentialsStatus.FAILED
+            else 'registration_pending'
+        )
         notification_template = await self.notification_template_repo.get(action_name)
         initials = {
             'first_name': command.first_name.as_generic() if command.first_name else '',

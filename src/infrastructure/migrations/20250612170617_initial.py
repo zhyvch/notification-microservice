@@ -8,7 +8,7 @@ class Forward:
     async def populate_notification_templates(self, session):
         templates = [
             NotificationTemplateModel(
-                name='registration_success',
+                name='registration_successful',
                 text_template='Dear %(first_name)s %(last_name)s %(middle_name)s we glad to inform you that your registration was successful!',
                 html_template='Dear <strong>%(first_name)s %(last_name)s %(middle_name)s</strong> we glad to inform you that your registration was successful!'
             ),
@@ -16,6 +16,11 @@ class Forward:
                 name='registration_failed',
                 text_template='Dear %(first_name)s %(last_name)s %(middle_name)s we sorry to inform you that your registration was not successful!',
                 html_template='Dear <strong>%(first_name)s %(last_name)s %(middle_name)s</strong> we sorry to inform you that your registration was not successful!'
+            ),
+            NotificationTemplateModel(
+                name='registration_pending',
+                text_template='Dear %(first_name)s %(last_name)s %(middle_name)s we inform you that your registration is pending.',
+                html_template='Dear <strong>%(first_name)s %(last_name)s %(middle_name)s</strong> we inform you that your registration is pending.'
             ),
             NotificationTemplateModel(
                 name='email_update_initiated',

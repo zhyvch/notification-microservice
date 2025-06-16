@@ -95,9 +95,7 @@ def get_commands_map(
     return commands_map
 
 
-def get_events_map(
-    producer: BaseProducer,
-) -> dict[type[BaseEvent], list[BaseEventHandler]]:
+def get_events_map(producer: BaseProducer) -> dict[type[BaseEvent], list[BaseEventHandler]]:
     events_map = {}
     return events_map
 

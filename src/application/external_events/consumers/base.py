@@ -11,6 +11,13 @@ class BaseConsumer(ABC):
         kw_only=True,
     )
 
+    async def __aenter__(self):
+        await self.start()
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        await self.stop()
+
     @abstractmethod
     async def start(self):
         ...

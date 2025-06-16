@@ -1,9 +1,10 @@
 import logging
+from uuid import UUID
 
 from domain.entities.notifications import EmailNotificationEntity, SMSNotificationEntity
-from infrastructure.converters.notifications import convert_notification_entity_to_model
-from infrastructure.exceptions.notifications import NotificationTemplateNotFoundException
-from infrastructure.models.notifications import NotificationTemplateModel
+from infrastructure.converters.notifications import convert_notification_entity_to_model, convert_notification_model_to_entity
+from infrastructure.exceptions.notifications import NotificationTemplateNotFoundException, NotificationNotFoundException
+from infrastructure.models.notifications import NotificationTemplateModel, NotificationModel
 from infrastructure.repositories.base import BaseNotificationRepository, BaseNotificationTemplateRepository
 
 
@@ -22,6 +23,23 @@ class BeanieNotificationRepository(BaseNotificationRepository):
             logger.debug('Notification with ID \'%s\' added to DB', notification.id)
         except Exception as e:
             logger.exception('Error adding notification with ID \'%s\': %s', notification.id, str(e))
+            raise
+
+    async def get(
+        self,
+        notification_id: UUID,
+    ) -> EmailNotificationEntity | SMSNotificationEntity:
+        logger.debug('Getting notification with ID \'%s\'', notification_id)
+        try:
+            notification = await NotificationModel.find_one(NotificationTemplateModel.id == notification_id)
+
+            if not notification:
+                raise NotificationNotFoundException(notification_id=notification_id)
+
+            logger.debug('Notification with ID \'%s\' found', notification_id)
+            return convert_notification_model_to_entity(notification)
+        except Exception as e:
+            logger.exception('Error retrieving notification with ID \'%s\': %s', notification_id, str(e))
             raise
 
 
