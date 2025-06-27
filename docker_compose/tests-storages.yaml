@@ -1,0 +1,17 @@
+version: '3.9'
+
+services:
+  tests-notification-mongodb:
+    image: mongo:8
+    container_name: tests-notification-mongodb
+    ports:
+      - '${TESTS_MONGODB_PORT}:27017'
+    volumes:
+      - tests_notification_service_mongo_data:/data/db
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${TESTS_MONGODB_USER}
+      - MONGO_INITDB_ROOT_PASSWORD=${TESTS_MONGODB_PASSWORD}
+      - MONGO_INITDB_DATABASE=${TESTS_MONGODB_DB}
+
+volumes:
+  tests_notification_service_mongo_data:

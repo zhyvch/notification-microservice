@@ -31,7 +31,7 @@ class BeanieNotificationRepository(BaseNotificationRepository):
     ) -> EmailNotificationEntity | SMSNotificationEntity:
         logger.debug('Getting notification with ID \'%s\'', notification_id)
         try:
-            notification = await NotificationModel.find_one(NotificationTemplateModel.id == notification_id)
+            notification = await NotificationModel.find_one(NotificationModel.id == notification_id)
 
             if not notification:
                 raise NotificationNotFoundException(notification_id=notification_id)
@@ -52,11 +52,12 @@ class BeanieNotificationTemplateRepository(BaseNotificationTemplateRepository):
     ) -> None:
         logger.debug('Adding notification template with name \'%s\'', name)
         try:
-            NotificationTemplateModel(
+            template = NotificationTemplateModel(
                 name=name,
                 text_template=text_template,
                 html_template=html_template,
-            ).insert()
+            )
+            await template.insert()
             logger.debug('Notification template with name \'%s\' added to DB', name)
         except Exception as e:
             logger.exception('Error adding notification template with name \'%s\': %s', name, str(e))
@@ -69,7 +70,7 @@ class BeanieNotificationTemplateRepository(BaseNotificationTemplateRepository):
     ) -> dict[str, str]:
         logger.debug('Getting notification template with name \'%s\'', name)
         try:
-            template = await NotificationTemplateModel.find_one(NotificationTemplateModel.name == name)
+            template = await NotificationTemplateModel.find_one({'name': name})
             
             if not template:
                 raise NotificationTemplateNotFoundException(name=name)

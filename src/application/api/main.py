@@ -9,7 +9,8 @@ from punq import Container
 from application.api.exception_handlers import exception_registry
 from application.external_events.consumers.base import BaseConsumer
 from infrastructure.producers.base import BaseProducer
-from infrastructure.storages.database import init_db
+from infrastructure.storages.database import init_mongodb
+from motor.motor_asyncio import AsyncIOMotorClient
 from settings.config import settings
 from settings.container import initialize_container
 
@@ -22,7 +23,8 @@ logging.basicConfig(
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    await init_db()
+    client = AsyncIOMotorClient(settings.MONGODB_URL)
+    await init_mongodb(client)
 
     container: Container = initialize_container()
     consumer: BaseConsumer = container.resolve(BaseConsumer)
@@ -34,6 +36,8 @@ async def lifespan(app: FastAPI):
     await producer.start()
 
     yield
+
+    client.close()
 
     await producer.stop()
 

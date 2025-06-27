@@ -32,6 +32,7 @@ class SMTPEmailSender(BaseEmailSender):
         text: str,
         html: str | None = None,
     ) -> None:
+        return
         message = MIMEMultipart('alternative')
         message['Subject'], message['From'], message['To'] = subject, sender, receiver
         plain_part = MIMEText(text, 'plain')

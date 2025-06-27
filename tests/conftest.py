@@ -35,6 +35,7 @@ logger = logging.getLogger(__name__)
 
 SKIP_DIRS = {'e2e', 'integration'}
 
+
 def pytest_addoption(parser):
     parser.addoption(
         '--run-all',
@@ -49,8 +50,8 @@ def pytest_ignore_collect(collection_path, config):
     return None
 
 
-@pytest_asyncio.fixture(scope='session')
-async def mobgodb_db():
+@pytest_asyncio.fixture(scope='function')
+async def mongodb_db():
     client = AsyncIOMotorClient(test_settings.TESTS_MONGODB_URL)
 
     await init_beanie(
@@ -61,11 +62,15 @@ async def mobgodb_db():
     await run_migrate(
         settings=MigrationSettings(
             direction=RunningDirections.FORWARD,
-            connection_uri=f'mongodb://{test_settings.TESTS_MONGODB_USER}:{test_settings.TESTS_MONGODB_PASSWORD}@{test_settings.TESTS_MONGODB_HOST}',
+            connection_uri=f'mongodb://{test_settings.TESTS_MONGODB_USER}:{test_settings.TESTS_MONGODB_PASSWORD}@{test_settings.TESTS_MONGODB_HOST}:{test_settings.TESTS_MONGODB_PORT}',
             database_name=test_settings.TESTS_MONGODB_DB,
             path='src/infrastructure/migrations/',
         )
     )
+
+    yield
+
+    client.close()
 
 
 @pytest.fixture
@@ -168,7 +173,7 @@ def random_email_notification_entity():
 
 
 @pytest.fixture
-def random_sms_entity():
+def random_sms_notification_entity():
     return SMSNotificationEntity(
         sender=PhoneNumberVO(test_settings.TESTS_FROM_PHONE_NUMBER),
         receivers=[PhoneNumberVO(f'+{randint(1000000000, 9999999999)}'),],

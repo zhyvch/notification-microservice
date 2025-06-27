@@ -1,0 +1,24 @@
+version: '3.9'
+
+services:
+  tests-rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: tests-rabbitmq
+    ports:
+      - '${TESTS_RABBITMQ_PORT}:5672'
+      - '15673:15672'
+    environment:
+      - RABBITMQ_DEFAULT_USER=${TESTS_RABBITMQ_USER}
+      - RABBITMQ_DEFAULT_PASS=${TESTS_RABBITMQ_PASSWORD}
+      - RABBITMQ_DEFAULT_VHOST=${TESTS_RABBITMQ_VHOST}
+    volumes:
+      - tests_rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  tests_rabbitmq_data:

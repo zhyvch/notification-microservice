@@ -11,8 +11,8 @@ class NotificationType(Enum):
 class NotificationModel(Document):
     id: UUID
     notification_type: NotificationType
-    sender: str | None
-    receivers: list[str] | None
+    sender: str
+    receivers: list[str]
     message: str
 
     class Settings:

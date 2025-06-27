@@ -20,6 +20,7 @@ class TwilioSMSSender(BaseSMSSender):
         receiver: str,
         text: str,
     ) -> None:
+        return
         client = Client(self.account_sid, self.auth_token)
         client.messages.create(from_=sender, body=text, to=receiver)
 

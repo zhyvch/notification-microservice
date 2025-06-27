@@ -13,12 +13,5 @@ services:
       - ../.env
     volumes:
       - ../src:/app/src
-#    networks:
-#      - backend
     depends_on:
-      - mongodb
-
-
-#networks:
-#  backend:
-#    driver: bridge
+      - notification-mongodb
