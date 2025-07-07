@@ -1,4 +1,6 @@
 import logging
+import ssl
+
 import aiosmtplib
 from dataclasses import dataclass
 from email.mime.multipart import MIMEMultipart
@@ -25,29 +27,38 @@ class SMTPEmailSender(BaseEmailSender):
             raise MutuallyExclusiveFlagsException
 
     async def send_targeted_email(
-        self,
-        sender: str,
-        receiver: str,
-        subject: str,
-        text: str,
-        html: str | None = None,
+            self,
+            sender: str,
+            receiver: str,
+            subject: str,
+            text: str,
+            html: str | None = None,
     ) -> None:
-        return
         message = MIMEMultipart('alternative')
         message['Subject'], message['From'], message['To'] = subject, sender, receiver
-        plain_part = MIMEText(text, 'plain')
+        message.attach(MIMEText(text, 'plain'))
 
         if html:
-            html_part = MIMEText(html, 'html')
-            message.attach(html_part)
+            message.attach(MIMEText(html, 'html'))
 
-        message.attach(plain_part)
+        ssl_context = ssl.create_default_context()
 
-        async with aiosmtplib.SMTP(hostname=self.host, port=self.port) as smtp:
+        smtp_kwargs = {
+            'hostname': self.host,
+            'port': self.port,
+            'tls_context': ssl_context,
+            'start_tls': False,
+        }
+
+        if self.use_ssl:
+            smtp_kwargs['use_tls'] = True
+        elif self.use_tls:
+            smtp_kwargs['start_tls'] = True
+
+        async with aiosmtplib.SMTP(**smtp_kwargs) as smtp:
             await smtp.login(self.username, self.password)
-            await smtp.sendmail(
-                sender, receiver, message.as_string()
-            )
+            await smtp.sendmail(sender, receiver, message.as_string())
+
 
     async def send_mass_email(
         self,

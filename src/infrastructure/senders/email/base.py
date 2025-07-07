@@ -12,12 +12,6 @@ class BaseEmailSender(ABC):
         self,
         email_notification: EmailNotificationEntity,
     ) -> None:
-        logger.warning(
-            '\nSending email from <%s> to <%s> \nwith text: %s',
-            email_notification.sender.as_generic(),
-            ', '.join([receiver.as_generic() for receiver in email_notification.receivers]),
-            email_notification.text,
-        )
         if len(email_notification.receivers) > 1:
             await self.send_mass_email(
                 sender=email_notification.sender.as_generic(),
